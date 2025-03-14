@@ -1,0 +1,26 @@
+{
+  "name": "linkcheck",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "acorn": "^8.14.1",
+    "axios": "^1.8.3",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "jsdom": "^26.0.0",
+    "psl": "^1.15.0",
+    "puppeteer": "^24.4.0"
+  }
+}

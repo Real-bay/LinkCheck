@@ -1,0 +1,32 @@
+# Node.js
+node_modules/
+dist/
+build/
+npm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+
+# dotenv environment files
+.env
+
+# Docker
+*.pid
+docker-compose.override.yml
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Puppeteer
+.chromium/
