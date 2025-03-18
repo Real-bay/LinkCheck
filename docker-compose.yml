@@ -1,0 +1,9 @@
+services:
+  url-checker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    volumes:
+      - ./:/usr/src
+    command: ['node', '/app/dist/index.js', 'https://example.com']
