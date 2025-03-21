@@ -20,4 +20,6 @@ COPY . .
 RUN tsc
 
 # Command to run the application
-CMD ["node", "/app/dist/index.js"]
+CMD ["node", "/app/build/index.js"]
+
+
