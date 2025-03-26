@@ -12,13 +12,16 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/jsdom": "^21.1.7",
     "@types/node": "^22.13.10",
     "@types/yargs": "^17.0.33",
-    "@typescript-eslint/eslint-plugin": "^8.26.1",
-    "@typescript-eslint/parser": "^8.26.1",
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
+    "@typescript-eslint/parser": "^8.28.0",
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.3",
+    "eslint-plugin-security": "^3.0.1",
+    "jsdom": "^26.0.0",
     "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
@@ -29,7 +32,6 @@
     "chalk": "^5.4.1",
     "commander": "^13.1.0",
     "dotenv": "^16.4.7",
-    "jsdom": "^26.0.0",
     "psl": "^1.15.0",
     "puppeteer": "^24.4.0",
     "undici": "^6.21.2"
