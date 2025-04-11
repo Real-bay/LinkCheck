@@ -1,8 +1,15 @@
 import axios from 'axios';
 import { JSDOM } from 'jsdom';
-import { ESLint, Linter } from 'eslint';
+// import { ESLint, Linter } from 'eslint';
 
-export async function analyzePage(url: string): Promise<object> {
+type HTMLAnalysisResult = {
+  url: string;
+  htmlFindings: string[];
+  //jsFindings?: object[];
+  error?: string;
+};
+
+export async function analyzePage(url: string): Promise<HTMLAnalysisResult> {
   try {
     const { data: html } = await axios.get(url);
     const dom = new JSDOM(html);
@@ -17,7 +24,7 @@ export async function analyzePage(url: string): Promise<object> {
     };
   } catch (error) {
     console.error('Error during analysis:', error);
-    return { error: 'Failed to analyze page' };
+    return { url, htmlFindings: [], error: 'Failed to analyze page' };
   }
 }
 
