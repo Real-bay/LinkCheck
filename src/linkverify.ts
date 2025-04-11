@@ -15,8 +15,8 @@ interface AnalysisResponse {
     attributes: {
       date: number;
       status: string;
-      results: {};
-      stats: {};
+      results: object;
+      stats: object;
     };
   };
 }

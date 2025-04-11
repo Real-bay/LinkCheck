@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { JSDOM } from 'jsdom';
-// import { ESLint, Linter } from 'eslint';
+import { ESLint, Linter } from 'eslint';
 
 type HTMLAnalysisResult = {
   url: string;
   htmlFindings: string[];
-  //jsFindings?: object[];
+  jsFindings?: object[];
   error?: string;
 };
 
@@ -15,12 +15,12 @@ export async function analyzePage(url: string): Promise<HTMLAnalysisResult> {
     const dom = new JSDOM(html);
 
     const htmlFindings = analyzeHTMLForSecurity(dom);
-    // const jsFindings = await analyzeInlineJS(dom); // TODO: Fix this to work with the new ESLint version
+    const jsFindings = await analyzeInlineJS(dom); // TODO: Fix this to work with the new ESLint version
 
     return {
       url,
-      htmlFindings, //,
-      //jsFindings,
+      htmlFindings,
+      jsFindings,
     };
   } catch (error) {
     console.error('Error during analysis:', error);
@@ -74,7 +74,7 @@ function analyzeHTMLForSecurity(dom: JSDOM): string[] {
   return findings;
 }
 
-/* async function analyzeInlineJS(dom: JSDOM): Promise<object[]> {
+async function analyzeInlineJS(dom: JSDOM): Promise<object[]> {
   const scripts = dom.window.document.querySelectorAll('script');
   const jsCodeSnippets: string[] = [];
 
@@ -88,14 +88,7 @@ function analyzeHTMLForSecurity(dom: JSDOM): string[] {
   if (jsCodeSnippets.length === 0) return [];
 
   const eslint = new ESLint({
-    baseConfig: {
-      extends: ['plugin:security/recommended'],
-      plugins: ['security'],
-      parserOptions: {
-        ecmaVersion: 2020,
-        sourceType: 'script',
-      },
-    } as unknown as Linter.Config,
+    overrideConfigFile: './eslint.config.mjs',
   });
 
   const findings: object[] = [];
@@ -121,4 +114,4 @@ function analyzeHTMLForSecurity(dom: JSDOM): string[] {
   }
 
   return findings;
-} */
+}
