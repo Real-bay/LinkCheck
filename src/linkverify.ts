@@ -1,5 +1,6 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { analyzePage } from './htmlAnalysis';
 
 type VirusTotalResponse = {
   data: {
@@ -14,8 +15,8 @@ interface AnalysisResponse {
     attributes: {
       date: number;
       status: string;
-      results: {};
-      stats: {};
+      results: object;
+      stats: object;
     };
   };
 }
@@ -87,9 +88,15 @@ async function waitForAnalysis(analysisId: string): Promise<void> {
 
 export async function scanAndAnalyzeUrl(url: string): Promise<void> {
   const analysisId = await scanUrl(url);
-  if (analysisId) {
-    await waitForAnalysis(analysisId);
-  }
+  if (!analysisId) return;
+
+  await waitForAnalysis(analysisId);
+
+  console.log('\n Running local HTML + JS static analysis...');
+  const result = await analyzePage(url);
+
+  console.log('\n Analysis summary (JSON):\n');
+  console.log(JSON.stringify(result, null, 2));
 }
 
 // Example usage
