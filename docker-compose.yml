@@ -6,4 +6,4 @@ services:
     env_file: .env
     volumes:
       - ./:/usr/src
-    command: ['node', '/app/build/index.js', 'https://example.com']
+    command: ['node', '/app/build/index.js', 'https://youtube.com']
