@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { JSDOM } from 'jsdom';
-import { ESLint, Linter } from 'eslint';
+import { ESLint } from 'eslint';
 
 type HTMLAnalysisResult = {
   url: string;
