@@ -4,11 +4,11 @@
   "main": "index.js",
   "scripts": {
     "test": "vitest",
-    "build": "npm run build:backend && npm run build:frontend",
-    "build:backend": "tsc",
+    "build": "npm run build:analyzer && npm run build:frontend",
+    "build:analyzer": "tsc",
     "build:frontend": "vite build",
-    "start": "npm run start:backend && npm run start:frontend",
-    "start:backend": "node build/index.js https://youtube.com",
+    "start": "npm run start:analyzer && npm run start:frontend",
+    "start:analyzer": "node build/htmlAnalysis.js https://youtube.com",
     "start:frontend": "vite"
   },
   "keywords": [],

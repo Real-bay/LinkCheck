@@ -42,6 +42,8 @@ export default [
     rules: {
       'security/detect-object-injection': 'warn',
     },
-    ignores: ['build/', 'frontend/public/dist/', 'node_modules/'],
+  },
+  {
+    ignores: ['build/', 'dist/', 'node_modules/'],
   },
 ];

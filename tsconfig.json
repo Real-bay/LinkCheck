@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
     "outDir": "./build",
-    "rootDir": "./src",
+    "rootDir": "./",
     "module": "CommonJS",
     "target": "ES2020",
     "esModuleInterop": true,
     "strict": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "analyzer/src/**/*", "frontend/src/api/linkverify.ts"]
 }

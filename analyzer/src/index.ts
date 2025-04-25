@@ -1,4 +1,4 @@
-import { scanAndAnalyzeUrl } from './linkverify';
+import { scanAndAnalyzeUrl } from '../../frontend/src/api/linkverify';
 
 const url = process.argv[2];
 

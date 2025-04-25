@@ -10,16 +10,10 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Install TypeScript globally
-RUN npm install -g typescript
-
 # Copy the rest of the application files
 COPY . .
 
-# Compile TypeScript to JavaScript
-RUN tsc
+EXPOSE 5173
 
 # Command to run the application
-CMD ["node", "/app/build/index.js"]
-
-
+CMD ["npm", "run", "start:frontend"]

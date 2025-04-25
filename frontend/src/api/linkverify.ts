@@ -1,6 +1,11 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
-import { analyzePage } from './htmlAnalysis';
+import { analyzePage } from '../../../analyzer/src/htmlAnalysis';
+
+dotenv.config();
+const VIRUSTOTAL_API_URL = 'https://www.virustotal.com/api/v3/urls';
+const VIRUSTOTAL_ANALYSIS_URL = 'https://www.virustotal.com/api/v3/analyses';
+const API_KEY = process.env.VIRUSTOTAL_API_KEY;
 
 type VirusTotalResponse = {
   data: {
@@ -20,11 +25,6 @@ interface AnalysisResponse {
     };
   };
 }
-
-dotenv.config();
-const VIRUSTOTAL_API_URL = 'https://www.virustotal.com/api/v3/urls';
-const VIRUSTOTAL_ANALYSIS_URL = 'https://www.virustotal.com/api/v3/analyses';
-const API_KEY = process.env.VIRUSTOTAL_API_KEY;
 
 async function scanUrl(urlToScan: string): Promise<string | null> {
   const requestBody = new URLSearchParams();
