@@ -1,4 +1,6 @@
-import { scanAndAnalyzeUrl } from '../../frontend/src/api/linkverify';
+import scanUrl from '../../frontend/src/api/linkverify.js';
+
+// TODO: Prune this file or re-implement CLI functionality.
 
 const url = process.argv[2];
 
@@ -9,4 +11,4 @@ if (!url) {
 
 console.log(`🔍 Checking URL: ${url}...`);
 
-scanAndAnalyzeUrl(url);
+scanUrl(url);

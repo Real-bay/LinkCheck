@@ -43,7 +43,7 @@ async function writeResultFile(result: object) {
   console.log('Analysis complete, result written.');
 }
 
-async function main() {
+export async function idle() {
   try {
     console.log('Waiting for URL...');
     const url = await waitForUrlFile();
@@ -165,4 +165,4 @@ async function analyzeInlineJS(dom: JSDOM): Promise<object[]> {
   return findings;
 }
 
-main();
+idle();

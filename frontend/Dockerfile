@@ -1,19 +1,31 @@
-# Start with the Node.js image
-FROM node:23-alpine
+FROM node:23-alpine AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the application files
 COPY . .
 
-EXPOSE 5173
+# Build frontend (Vite) and backend (e.g., tsc)
+RUN npm run build && npm run build:server
 
-# Command to run the application
-CMD ["npm", "run", "start:frontend"]
+# ──────────────────────────────────────────────
+
+FROM node:23-alpine AS runtime
+
+WORKDIR /app
+
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/build ./build
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./
+
+# Copy any assets you might need (optional)
+COPY --from=build /app/public ./public
+
+ENV NODE_ENV=production
+EXPOSE 3001
+
+# Runs Express, which serves frontend + backend
+CMD ["node", "build/server.js"]
