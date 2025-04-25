@@ -7,8 +7,8 @@ RUN npm ci
 
 COPY . .
 
-# Build frontend (Vite) and backend (e.g., tsc)
-RUN npm run build && npm run build:server
+# Build frontend (Vite) and backend (Express/tsc)
+RUN npm run build
 
 # ──────────────────────────────────────────────
 
