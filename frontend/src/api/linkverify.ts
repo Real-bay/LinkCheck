@@ -1,10 +1,8 @@
 import axios from 'axios';
-import dotenv from 'dotenv';
 
-dotenv.config();
 const VIRUSTOTAL_API_URL = 'https://www.virustotal.com/api/v3/urls';
 const VIRUSTOTAL_ANALYSIS_URL = 'https://www.virustotal.com/api/v3/analyses';
-const API_KEY = process.env.VITE_VIRUSTOTAL_API_KEY;
+const API_KEY = import.meta.env.VITE_VIRUSTOTAL_API_KEY;
 
 type VirusTotalResponse = {
   data: {

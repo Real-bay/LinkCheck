@@ -2,13 +2,14 @@
   "name": "linkcheck",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "vitest",
     "build": "npm run build:analyzer && npm run build:frontend",
     "build:analyzer": "tsc",
     "build:frontend": "vite build",
     "dev": "npm run start:frontend && npm run dev:backend",
-    "dev:backend": "ts-node frontend/src/server.ts",
+    "dev:backend": "node build/backend/server.js",
     "start": "npm run start:analyzer && npm run start:frontend",
     "start:analyzer": "node build/htmlAnalysis.js https://youtube.com",
     "start:frontend": "vite"
