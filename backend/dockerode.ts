@@ -1,5 +1,5 @@
 import express, { Request, Response, Router } from 'express';
-import scanUrl from '../frontend/src/api/linkverify';
+import scanUrl from '../frontend/src/api/linkverify.js';
 import Docker from 'dockerode';
 import { writeFile, readFile } from 'fs/promises';
 import fs from 'fs';

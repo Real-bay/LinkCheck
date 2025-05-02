@@ -1,5 +1,5 @@
 import express from 'express';
-import analyzeRouter from './dockerode';
+import analyzeRouter from './dockerode.js';
 import path from 'path';
 
 const app = express();
@@ -17,5 +17,5 @@ app.get('*', (req, res) => {
 
 const PORT = import.meta.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
