@@ -13,7 +13,7 @@
   },
   "include": [
     "analyzer/src/**/*",
-    "frontend/src/api/linkverify.ts",
+    "backend/api/linkverify.ts",
     "backend/dockerode.ts",
     "backend/server.ts",
     "vite-env.d.ts"

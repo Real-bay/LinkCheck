@@ -1,4 +1,4 @@
-import scanUrl from '../../frontend/src/api/linkverify.js';
+import scanUrl from '../../backend/api/linkverify.js';
 
 // TODO: Prune this file or re-implement CLI functionality.
 

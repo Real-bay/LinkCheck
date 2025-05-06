@@ -1,8 +1,20 @@
 import axios from 'axios';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: __dirname + '/../../' });
 
 const VIRUSTOTAL_API_URL = 'https://www.virustotal.com/api/v3/urls';
 const VIRUSTOTAL_ANALYSIS_URL = 'https://www.virustotal.com/api/v3/analyses';
-const API_KEY = import.meta.env.VITE_VIRUSTOTAL_API_KEY;
+const API_KEY = process.env.VIRUSTOTAL_API_KEY || '';
+
+if (!API_KEY) {
+  throw new Error('VIRUSTOTAL_API_KEY is not set in environment variables');
+}
 
 type VirusTotalResponse = {
   data: {
