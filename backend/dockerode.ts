@@ -8,7 +8,7 @@ import { randomUUID } from 'crypto';
 
 const router: Router = express.Router();
 const docker = new Docker();
-const RESULT_BASE = '/results'; // Volume mount path
+const RESULT_BASE = '/app/shared'; // Volume mount path
 
 router.post('/analyze', async (req: Request, res: Response) => {
   const url: string = req.body.url;

@@ -1,5 +1,6 @@
 import './App.css';
 import React, { useState } from 'react';
+import axios from 'axios';
 
 function App() {
   const [link, setLink] = useState('');
@@ -11,14 +12,8 @@ function App() {
     setLoadingResults(true);
 
     try {
-      const res = await fetch(`/api/analyze`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: link }),
-      });
-
-      const json = await res.json();
-      setResults(json);
+      const res = await axios.post('/api/analyze', { url: link });
+      setResults(res.data);
     } catch (err) {
       console.error('Error fetching analysis results:', err);
       setResults({ error: 'Failed to fetch analysis results.' });

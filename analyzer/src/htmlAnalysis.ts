@@ -2,6 +2,7 @@ import axios from 'axios';
 import { JSDOM } from 'jsdom';
 import { ESLint } from 'eslint';
 import fs from 'fs/promises';
+import { existsSync, writeFileSync } from 'fs';
 import path from 'path';
 
 type HTMLAnalysisResult = {
@@ -11,9 +12,18 @@ type HTMLAnalysisResult = {
   error?: string;
 };
 
-const INPUT_DIR = '/shared/job'; // Adjust this at runtime using env vars if needed
+const INPUT_DIR = '/app/shared'; // Adjust this at runtime using env vars if needed
 const URL_FILE = path.join(INPUT_DIR, 'url.txt');
 const RESULT_FILE = path.join(INPUT_DIR, 'result.json');
+
+// Create input/output files if they don't exist
+if (!existsSync(URL_FILE)) {
+  writeFileSync(URL_FILE, '');
+}
+
+if (!existsSync(RESULT_FILE)) {
+  writeFileSync(RESULT_FILE, '{}');
+}
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -24,17 +34,22 @@ async function waitForUrlFile(timeoutMs = 30000): Promise<string> {
       const url = await fs.readFile(URL_FILE, 'utf-8');
       if (url) return url.trim();
     } catch (error) {
-      console.error(
-        'Timed out waiting for VirusTotal check after ',
-        timeoutMs / 1000,
-        ' seconds:',
-        error,
-      );
+      if (Date.now() - start > timeoutMs) {
+        console.error(
+          `Timed out waiting for VirusTotal check after ${timeoutMs / 1000} seconds:`,
+          error,
+        );
+      } else {
+        console.log('Current working directory:', process.cwd());
+        console.error('Unclassified error while waiting for URL file:', error);
+      }
     }
     if (Date.now() - start > timeoutMs) {
-      throw new Error('Timed out waiting for URL input');
+      throw new Error(
+        `Timed out waiting for VirusTotal check after ${timeoutMs / 1000} seconds.`,
+      );
     }
-    await sleep(500);
+    await sleep(5000);
   }
 }
 
