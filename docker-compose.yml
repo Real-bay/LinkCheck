@@ -13,6 +13,7 @@ services:
       - app-network
 
   analyzer:
+    profiles: ["manual"]
     build:
       context: .
       dockerfile: analyzer/Dockerfile

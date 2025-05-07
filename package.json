@@ -13,7 +13,7 @@
   "dev:backend": "node build/backend/server.js",
   "start": "npm run start:frontend && npm run start:analyzer",
   "start:frontend": "vite",
-  "start:analyzer": "node build/htmlAnalysis.js"
+  "start:analyzer": "node build/analyzer/src/htmlAnalysis.js"
 },
   "keywords": [],
   "author": "",

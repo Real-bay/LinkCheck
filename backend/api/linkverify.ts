@@ -125,9 +125,6 @@ async function ResolveAnalysis(analysisId: string): Promise<AnalysisResult> {
       const stats: VirusTotalStats = analysis.data.attributes.stats;
       const harmful = stats.malicious > 0 || stats.suspicious > 0;
       const results: VirusTotalResult[] = analysis.data.attributes.results;
-      console.log('Analysis completed:', analysis.data.attributes.status);
-      console.log('Analysis results:', results);
-      console.log('Analysis stats:', stats);
       return { harmful, stats, results };
     }
     console.log('Analysis still queued, waiting 5 seconds...');

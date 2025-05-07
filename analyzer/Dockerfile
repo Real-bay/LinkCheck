@@ -17,4 +17,4 @@ COPY . .
 RUN npm run build:analyzer
 
 # Entrypoint: run the analyzer
-CMD ["node", "analyzer/htmlAnalysis.js"]
+CMD ["node", "build/analyzer/src/htmlAnalysis.js"]
