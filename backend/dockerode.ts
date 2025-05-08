@@ -89,7 +89,7 @@ router.post('/analyze', async (req: Request, res: Response) => {
         console.log('Container is running, writing URL file');
         break;
       }
-      await new Promise((r) => setTimeout(r, 500));
+      await sleep(500);
     }
 
     // 5. Write URL to trigger analysis
@@ -101,12 +101,12 @@ router.post('/analyze', async (req: Request, res: Response) => {
     for (let i = 0; i < 30; i++) {
       console.log('Checking result file at path:', resultPath);
       if (fs.existsSync(resultPath)) {
-        sleep(1000);
+        await sleep(1000);
         const resultContent = await readFile(resultPath, 'utf-8');
         try {
           if (resultContent.trim() === '{}') {
             console.log('Result file is empty, waiting...');
-            sleep(1000);
+            await sleep(1000);
             continue;
           }
           console.log('Result file found, parsing...');
@@ -125,7 +125,7 @@ router.post('/analyze', async (req: Request, res: Response) => {
         }
       }
       console.log('Result file not found, waiting...');
-      sleep(1000);
+      await sleep(1000);
     }
 
     await container.stop();
