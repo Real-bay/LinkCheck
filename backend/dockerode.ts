@@ -29,26 +29,23 @@ router.post('/analyze', async (req: Request, res: Response) => {
     // 1. Create job folder on the host
     fs.mkdirSync(containerJobPath, { recursive: true });
 
-    // 2. Start analyzer container with only the job-specific folder mounted
-    const container = await docker.createContainer({
-      Image: 'analyzer:latest',
-      name: jobId,
-      Env: [`JOB_ID=${jobId}`],
-      HostConfig: {
-        Binds: [`shared-data:/app/shared`], // Bind mount the shared folder
-        // AutoRemove: true,
-      },
+    // 1.5. Create url.txt and result.json files in the job folder
+    await writeFile(path.join(containerJobPath, 'url.txt'), '', {
+      mode: 0o666,
     });
-    await container.start();
-    console.log('Analyzer container started:', jobId);
-    console.log('Bound container path:', containerJobPath);
+    await writeFile(path.join(containerJobPath, 'result.json'), '{}', {
+      mode: 0o666,
+    });
+    console.log(
+      'Initialized url.txt and result.json files in:',
+      containerJobPath,
+    );
 
-    // 3. Run VirusTotal check
+    // 2. Run VirusTotal check
     const vt = await scanUrl(url);
 
     if (vt.harmful) {
       console.log('URL is harmful, skipping analysis');
-      await container.stop();
       res.status(200).json({
         vtResult: vt,
         pageAnalysis: null,
@@ -58,6 +55,26 @@ router.post('/analyze', async (req: Request, res: Response) => {
     }
 
     console.log('URL is not harmful on VirusTotal, proceeding with analysis');
+
+    // 3. Create and start the Docker container
+    const container = await docker.createContainer({
+      Image: 'analyzer:latest',
+      name: jobId,
+      Env: [`JOB_ID=${jobId}`],
+      HostConfig: {
+        Mounts: [
+          {
+            Target: '/app/shared',
+            Source: 'linkcheck_shared-data',
+            Type: 'volume',
+          },
+        ],
+      },
+    });
+
+    await container.start();
+    console.log('Analyzer container started:', jobId);
+    console.log('Bound container path:', containerJobPath);
 
     // 4. Wait for the container to be fully running
     for (let i = 0; i < 10; i++) {
@@ -89,8 +106,10 @@ router.post('/analyze', async (req: Request, res: Response) => {
           pageAnalysis: JSON.parse(resultContent),
           skipped: false,
         });
+        console.log('Done waiting for analysis, result:', resultContent);
         return;
       }
+      console.log('Result file not found, waiting...');
       await new Promise((r) => setTimeout(r, 1000));
     }
 
