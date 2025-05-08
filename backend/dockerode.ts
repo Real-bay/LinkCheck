@@ -9,6 +9,9 @@ import { randomUUID } from 'crypto';
 const router: Router = express.Router();
 const docker = new Docker();
 
+// Utility function to pause execution for a given time
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 router.post('/analyze', async (req: Request, res: Response) => {
   const url: string = req.body.url;
   if (!url) {
@@ -16,20 +19,17 @@ router.post('/analyze', async (req: Request, res: Response) => {
     return;
   }
 
-  //const HOST_SHARED_BASE = path.resolve('shared'); // Host path: ./shared/
   const CONTAINER_SHARED_BASE = '/app/shared'; // Mount point inside container
 
-  const jobId = `job-${randomUUID()}`;
-  //const hostJobPath = path.join(HOST_SHARED_BASE, jobId); // e.g. ./shared/job-xxxx
+  const jobId = `job-${randomUUID()}`; // Unique job ID for each container
   const containerJobPath = path.join(CONTAINER_SHARED_BASE, jobId); // e.g. /app/shared/job-xxxx
-  const urlPath = path.join(containerJobPath, 'url.txt');
-  const resultPath = path.join(containerJobPath, 'result.json');
+  const urlPath = path.join(containerJobPath, 'url.txt'); // File containing the URL to analyze
+  const resultPath = path.join(containerJobPath, 'result.json'); // File to store the analysis results
 
   try {
-    // 1. Create job folder on the host
+    // 1. Create job folder and files on the host
     fs.mkdirSync(containerJobPath, { recursive: true });
 
-    // 1.5. Create url.txt and result.json files in the job folder
     await writeFile(path.join(containerJobPath, 'url.txt'), '', {
       mode: 0o666,
     });
@@ -56,7 +56,7 @@ router.post('/analyze', async (req: Request, res: Response) => {
 
     console.log('URL is not harmful on VirusTotal, proceeding with analysis');
 
-    // 3. Create and start the Docker container
+    // 3. Create and start the analyzer Docker container
     const container = await docker.createContainer({
       Image: 'analyzer:latest',
       name: jobId,
@@ -101,12 +101,12 @@ router.post('/analyze', async (req: Request, res: Response) => {
     for (let i = 0; i < 30; i++) {
       console.log('Checking result file at path:', resultPath);
       if (fs.existsSync(resultPath)) {
-        await new Promise((r) => setTimeout(r, 1000)); // Wait before reading
+        sleep(1000);
         const resultContent = await readFile(resultPath, 'utf-8');
         try {
           if (resultContent.trim() === '{}') {
             console.log('Result file is empty, waiting...');
-            await new Promise((r) => setTimeout(r, 1000));
+            sleep(1000);
             continue;
           }
           console.log('Result file found, parsing...');
@@ -125,7 +125,7 @@ router.post('/analyze', async (req: Request, res: Response) => {
         }
       }
       console.log('Result file not found, waiting...');
-      await new Promise((r) => setTimeout(r, 1000));
+      sleep(1000);
     }
 
     await container.stop();

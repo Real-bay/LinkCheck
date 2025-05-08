@@ -1,24 +1,34 @@
 # LinkCheck
 
-This project uses the VirusTotal API to scan URLs and analyze their safety by retrieving analysis results. It can be run both locally with Node.js or in a Docker container using Docker Compose.
+This project can be used to evaluate the safety of a particular website based on a provided URL. The application first uses the VirusTotal API to check against known URL blacklists. If VirusTotal returns a clean result, the application further inspects the website by performing static HMTL and JavaScript analysis on the site contents. Finally it displays the results of the analysis in a user-friendly format.
 
 ## Features
 
-- Submits a URL for scanning to the VirusTotal API.
-- Retrieves analysis results after the scan is completed.
-- Supports both local and containerized environments.
+- **VirusTotal API Integration**: Checks URLs against VirusTotal's database of known malicious sites.
+- **Static Analysis**: Performs static HTML and JavaScript analysis on the website's content to identify potential security issues.
+- **Docker implementation**: Runs in a containerized environment for easy deployment and safety.
+
+### Tech Stack
+- **Frontend**: React, Vite, TypeScript
+- **Backend**: Express (Node), Axios, TypeScript
+- **Static Analysis**: Static HTML analysis, ESLint for JS analysis
+- **Containerization**: Docker, Docker Compose
+- **Testing/Code checking**: Vitest, ESLint, Prettier
+- **Pipeline/Security**: GitHub Actions, Trivy, ZAP
 
 ## Prerequisites
 
 Before using this tool, ensure you have the following:
 
-1. [Node.js](https://nodejs.org/) (version 18.x or higher) installed on your system.
+1. [Node.js](https://nodejs.org/) (version 20.x or higher) installed on your system.
 2. A valid [VirusTotal API key](https://www.virustotal.com/api/v3/).
+3. [Docker](https://www.docker.com/) installed on your system
 
-You’ll also need to set your API key as an environment variable in a `.env` file:
+You’ll also need to set your API key and default PORT as environment variables in a `.env` file:
 
 ```
 VIRUSTOTAL_API_KEY=your_api_key_here
+PORT=3001
 ```
 
 ## Installation
@@ -40,41 +50,35 @@ Install the required npm packages:
 npm install
 ```
 
-## Running the Project
-
-### Option 1: Running Locally with Node.js
-
-1. Set up your `.env` file with your VirusTotal API key (see the **Prerequisites** section).
-2. Run the project:
-
-```bash
-npm start
-```
-
-This will build the TypeScript files and execute the script in `build/index.js`. You can modify the URL to scan within the script itself or integrate it into a larger application.
-
-### Option 2: Running in Docker with Docker Compose
+## Running the Project using Docker Compose
 
 To run the project using Docker Compose, follow these steps:
 
-1. **Create a `.env` file** with your VirusTotal API key, as shown above.
-2. **Build and run the services:**
+### 1. Create a `.env` file
+Create a `.env` file in the root directory of the project and add your VirusTotal API key and desired port.
+
+### 2. **Build and run the services:**
 
 ```bash
-docker-compose up --build
+docker-compose build application analyzer
 ```
 
-This will build the Docker image, set up the container, and start the application with the specified command (`node /app/build/index.js https://example.com`). You can modify the command or URL by editing the `docker-compose.yml` file.
+This will build the Docker images for both the application container and the analysis container(s).
 
-The `docker-compose.yml` file specifies the `url-checker` service, which builds the image using the `Dockerfile`, loads the environment variables from the `.env` file, and runs the application with the command `node /app/build/index.js`. The volume mount (`- ./:/usr/src`) ensures the current directory is available in the container for any changes you make to the source files.
+```bash
+docker-compose up
+```
 
-## Dockerfile and Docker compose
+This will start the application container which runs the Express server hosting the app. The application will be accessible at `http://localhost:3001` (or the port specified in your `.env` file).
 
-The project includes a `Dockerfile` and `docker-compose.yml` for containerization. Docker sets up the Node.js environment, installs dependencies, compiles the TypeScript code, and runs the application.
+## Dockerfiles and Docker compose
+
+The project includes `Dockerfiles` for both the application and analyzer containers as well as the`docker-compose.yml` config file for containerization. Docker sets up the Node.js environment, installs dependencies, compiles the TypeScript code, and runs the application.
 
 ### Explanation of the Docker Compose Setup:
 
-- The `docker-compose.yml` file defines a service (`url-checker`) that uses the `Dockerfile` to build the image and run the container.
-- The `env_file: .env` tells Docker Compose to use the `.env` file for environment variables (like the VirusTotal API key).
-- The `volumes` directive mounts the project’s directory into the container to keep it in sync with any local changes you make while the container is running.
-- The `command` overrides the default command and ensures the application runs with the specified URL (`https://example.com` in this case).
+- **application**: This service runs the main application, which handles the frontend and backend, interacts with the VirusTotal API and spins up the analyzer service containers as necessary.
+- **analyzer**: This service is responsible for performing static analysis on the website's content. It is built from the `Dockerfile` located in the `analyzer` directory.
+
+
+
