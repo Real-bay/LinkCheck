@@ -99,15 +99,30 @@ router.post('/analyze', async (req: Request, res: Response) => {
 
     // 6. Wait for analysis result
     for (let i = 0; i < 30; i++) {
+      console.log('Checking result file at path:', resultPath);
       if (fs.existsSync(resultPath)) {
+        await new Promise((r) => setTimeout(r, 1000)); // Wait before reading
         const resultContent = await readFile(resultPath, 'utf-8');
-        res.status(200).json({
-          vtResult: vt,
-          pageAnalysis: JSON.parse(resultContent),
-          skipped: false,
-        });
-        console.log('Done waiting for analysis, result:', resultContent);
-        return;
+        try {
+          if (resultContent.trim() === '{}') {
+            console.log('Result file is empty, waiting...');
+            await new Promise((r) => setTimeout(r, 1000));
+            continue;
+          }
+          console.log('Result file found, parsing...');
+          const parsedResult = JSON.parse(resultContent);
+          res.status(200).json({
+            vtResult: vt,
+            pageAnalysis: parsedResult,
+            skipped: false,
+          });
+          console.log('Analysis complete.');
+          return;
+        } catch (err) {
+          console.error('Error parsing JSON:', err);
+          res.status(500).json({ error: 'Failed to parse analysis result' });
+          return;
+        }
       }
       console.log('Result file not found, waiting...');
       await new Promise((r) => setTimeout(r, 1000));
