@@ -2,12 +2,12 @@ import axios from 'axios';
 import { JSDOM } from 'jsdom';
 import { ESLint } from 'eslint';
 import fs from 'fs/promises';
-// import { existsSync, writeFileSync } from 'fs';
 import path from 'path';
 
+// Types for analysis results
 type HTMLFindings = {
-  tags: Record<string, unknown>;
-  findings: string[];
+  tags: Record<string, unknown>; // Counts of specific HTML tags
+  findings: string[]; // Security-related findings in the HTML
 };
 type HTMLAnalysisResult = {
   url: string;
@@ -16,24 +16,27 @@ type HTMLAnalysisResult = {
   error?: string;
 };
 
-const JOB_ID = process.env.JOB_ID || ''; // Use JOB_ID from env vars
-
+// Environment variable for the job ID, used to identify the shared directory
+const JOB_ID = process.env.JOB_ID || '';
 if (!JOB_ID) {
   throw new Error('JOB_ID is not set in environment variables');
 }
 
-const FILE_DIR = path.join('/app/shared', JOB_ID); // e.g. /shared/job-xxxx
-const INPUT_FILE = path.join(FILE_DIR, 'url.txt'); // e.g. /shared/job-xxxx/url.txt
-const RESULT_FILE = path.join(FILE_DIR, 'result.json'); // e.g. /shared/job-xxxx/result.json
+// Paths for input and output files in the shared volume
+const FILE_DIR = path.join('/app/shared', JOB_ID); // Shared directory for the job
+const INPUT_FILE = path.join(FILE_DIR, 'url.txt'); // File containing the URL to analyze
+const RESULT_FILE = path.join(FILE_DIR, 'result.json'); // File to store the analysis results
 
+// Utility function to pause execution for a given time
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function waitForUrlFile(timeoutMs = 300000): Promise<string> {
+// Waits for the URL file to appear in the shared directory
+async function waitForUrlFile(timeoutMs = 30000): Promise<string> {
   const start = Date.now();
   while (true) {
     try {
       const url = await fs.readFile(INPUT_FILE, 'utf-8');
-      if (url) return url.trim();
+      if (url) return url.trim(); // Return the URL if the file is found and contains data
     } catch (error) {
       if (Date.now() - start > timeoutMs) {
         console.error(
@@ -54,33 +57,36 @@ async function waitForUrlFile(timeoutMs = 300000): Promise<string> {
   }
 }
 
+// Writes the analysis result to the result file in the shared directory
 async function writeResultFile(result: object) {
   await fs.writeFile(RESULT_FILE, JSON.stringify(result, null, 2), 'utf-8');
   console.log('Analysis complete, result written.');
 }
 
+// Main function to idle and wait for a URL to analyze
 export async function idle() {
   try {
     console.log('Waiting for URL...');
-    const url = await waitForUrlFile();
+    const url = await waitForUrlFile(); // Wait for the URL file
     console.log(`Received URL: ${url}`);
 
-    const result = await analyzePage(url);
+    const result = await analyzePage(url); // Perform the analysis
 
-    await writeResultFile(result);
+    await writeResultFile(result); // Write the results to the shared directory
   } catch (error) {
     console.error('Error during analysis:', error);
     process.exit(1);
   }
 }
 
+// Analyzes the HTML and JavaScript of the given URL
 export async function analyzePage(url: string): Promise<HTMLAnalysisResult> {
   try {
-    const { data: html } = await axios.get(url);
-    const dom = new JSDOM(html);
+    const { data: html } = await axios.get(url); // Fetch the HTML content of the URL
+    const dom = new JSDOM(html); // Parse the HTML using JSDOM
 
-    const htmlFindings = analyzeHTMLForSecurity(dom);
-    const jsFindings = await analyzeInlineJS(dom);
+    const htmlFindings = analyzeHTMLForSecurity(dom); // Analyze the HTML for security issues
+    const jsFindings = await analyzeInlineJS(dom); // Analyze inline JavaScript
 
     return {
       url,
@@ -97,11 +103,13 @@ export async function analyzePage(url: string): Promise<HTMLAnalysisResult> {
   }
 }
 
+// Analyzes the HTML for security-related issues
 function analyzeHTMLForSecurity(dom: JSDOM): HTMLFindings {
   const doc = dom.window.document;
   const findings: string[] = [];
   const tagCounts = new Map<string, number>();
 
+  // List of potentially dangerous HTML tags
   const dangerousTags = ['script', 'iframe', 'object', 'embed', 'link'];
   dangerousTags.forEach((tag) => {
     const elements = doc.querySelectorAll(tag);
@@ -110,7 +118,7 @@ function analyzeHTMLForSecurity(dom: JSDOM): HTMLFindings {
         el.tagName.toLowerCase() === 'link' &&
         el.getAttribute('rel') !== 'import'
       )
-        return;
+        return; // Skip harmless <link> tags
       // Count the tags
       if (!tagCounts.has(tag)) {
         tagCounts.set(tag, 0);
@@ -119,6 +127,7 @@ function analyzeHTMLForSecurity(dom: JSDOM): HTMLFindings {
     });
   });
 
+  // Check for inline event handlers and dangerous attributes
   const allElements = doc.querySelectorAll('*');
   allElements.forEach((el) => {
     for (const attr of Array.from(el.attributes) as Attr[]) {
@@ -146,17 +155,19 @@ function analyzeHTMLForSecurity(dom: JSDOM): HTMLFindings {
   });
 
   const allFindings: HTMLFindings = {
-    tags: Object.fromEntries(tagCounts),
+    tags: Object.fromEntries(tagCounts), // Convert tag counts to an object
     findings: findings,
   };
   console.log(allFindings);
   return allFindings;
 }
 
+// Analyzes inline JavaScript using ESLint
 async function analyzeInlineJS(dom: JSDOM): Promise<object[]> {
   const scripts = dom.window.document.querySelectorAll('script');
   const jsCodeSnippets: string[] = [];
 
+  // Collect inline JavaScript code snippets
   scripts.forEach((script) => {
     const code = script.textContent?.trim();
     if (code && !script.src) {
@@ -167,14 +178,15 @@ async function analyzeInlineJS(dom: JSDOM): Promise<object[]> {
   if (jsCodeSnippets.length === 0) return [];
 
   const eslint = new ESLint({
-    overrideConfigFile: './eslint.config.mjs',
+    overrideConfigFile: './eslint.config.mjs', // Use project ESLint configuration
   });
 
   const findings: object[] = [];
 
+  // Lint each inline JavaScript snippet
   for (const [i, code] of jsCodeSnippets.entries()) {
     const results = await eslint.lintText(code, {
-      filePath: `inline-script-${i}.js`,
+      filePath: `inline-script-${i}.js`, // Simulate file paths for inline scripts
     });
 
     results.forEach((result) => {
