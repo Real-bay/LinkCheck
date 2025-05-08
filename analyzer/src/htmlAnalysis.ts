@@ -5,9 +5,13 @@ import fs from 'fs/promises';
 // import { existsSync, writeFileSync } from 'fs';
 import path from 'path';
 
+type HTMLFindings = {
+  tags: {};
+  findings: string[];
+}
 type HTMLAnalysisResult = {
   url: string;
-  htmlFindings: string[];
+  htmlFindings: HTMLFindings;
   jsFindings?: object[];
   error?: string;
 };
@@ -85,13 +89,14 @@ export async function analyzePage(url: string): Promise<HTMLAnalysisResult> {
     };
   } catch (error) {
     console.error('Error during analysis:', error);
-    return { url, htmlFindings: [], error: 'Failed to analyze page' };
+    return { url, htmlFindings: { findings: [], tags: {}}, error: 'Failed to analyze page' };
   }
 }
 
-function analyzeHTMLForSecurity(dom: JSDOM): string[] {
+function analyzeHTMLForSecurity(dom: JSDOM): HTMLFindings {
   const doc = dom.window.document;
   const findings: string[] = [];
+  const tagCounts: { [key: string]: number } = {};
 
   const dangerousTags = ['script', 'iframe', 'object', 'embed', 'link'];
   dangerousTags.forEach((tag) => {
@@ -102,7 +107,11 @@ function analyzeHTMLForSecurity(dom: JSDOM): string[] {
         el.getAttribute('rel') !== 'import'
       )
         return;
-      findings.push(`<${tag}> tag found`);
+    // Count the tags
+    if (!tagCounts[tag]) {
+      tagCounts[tag] = 0;
+    }
+    tagCounts[tag]++;
     });
   });
 
@@ -132,7 +141,12 @@ function analyzeHTMLForSecurity(dom: JSDOM): string[] {
     }
   });
 
-  return findings;
+  const allFindings: HTMLFindings = {
+    tags: tagCounts,
+    findings: findings
+  }
+  console.log(allFindings);
+  return allFindings;
 }
 
 async function analyzeInlineJS(dom: JSDOM): Promise<object[]> {

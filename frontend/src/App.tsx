@@ -5,7 +5,7 @@ import axios from 'axios';
 function App() {
   const [link, setLink] = useState('');
   const [loadingResults, setLoadingResults] = useState(false);
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState(null); 
 
   const handleSubmit = async () => {
     setResults(null);
@@ -47,22 +47,61 @@ function App() {
             Submit
           </button>
         </div>
-        <div>
-          <div style={{ fontSize: '30px' }}>Results</div>
+        <div style={{ textAlign: 'left', paddingLeft: '20px' }}>
+          <h1>Results</h1>
           {loadingResults && <div>Loading...</div>}
           {results && (
-            <div style={{ fontSize: '24px' }}>
+            <div style={{ fontSize: '20px' }}>
               {results.error && <div>Error: {results.error}</div>}
               {results.vtResult && (
-                <div>
-                  <strong>VirusTotal Results:</strong>
-                  <pre>{JSON.stringify(results.vtResult, null, 2)}</pre>
+                <div style={{ marginBottom: '20px' }}>
+                  <h2>VirusTotal Results:</h2>
+                  {results.vtResult.harmful && (
+                    <div style={{ fontSize: '30px' }}>This website might be malicious!</div>
+                  )}
+                  {!results.vtResult.harmful && (
+                    <div style={{ fontSize: '30px' }}>This website is most likely safe!</div>
+                  )}
+                  <div>
+                    <div>Harmless results: {results.vtResult.stats.harmless}</div>
+                    <div>Malicious results: {results.vtResult.stats.malicious}</div>
+                    <div>Suspicious results: {results.vtResult.stats.suspicious}</div>
+                    <div>Undetected results: {results.vtResult.stats.undetected}</div>
+                  </div>
                 </div>
               )}
               {results.pageAnalysis && (
                 <div>
-                  <strong>Page Analysis:</strong>
-                  <pre>{JSON.stringify(results.pageAnalysis, null, 2)}</pre>
+                  <h2>Page Analysis Results:</h2>
+                  <h4>HTML findings</h4>
+                  <ul>
+                  {Object.entries(results.pageAnalysis.htmlFindings.tags).map(([tag, count]) => (
+                    <li key={tag}>
+                      Number of &lt;{tag}&gt;-tags found: {count}
+                    </li>
+                  ))}
+                  </ul>
+                  <ul>
+                    {results.pageAnalysis.htmlFindings.findings.map((f, i) => (
+                      <li key={i}>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <h4>JavaScript findings</h4>
+                  <div>{results.pageAnalysis.jsFindings.file}</div>
+                  {results.pageAnalysis.jsFindings.map((finding, index) => (
+                    <div key={index} style={{ marginBottom: '5px' }}>
+                      <h5>{finding.file.split('/').at(-1)}</h5>
+                      <ul>
+                        {finding.messages.map((msg, idx) => (
+                          <li key={idx}>
+                            Line {msg.line}, Column {msg.column}: <strong>{msg.message}</strong> ({msg.ruleId})
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
                 </div>
               )}
               {results.skipped && <div>Static analysis skipped.</div>}
