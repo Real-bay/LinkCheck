@@ -31,6 +31,11 @@ jobs:
       - name: Build the project
         run: npm run build
 
+      - name: Inject .env file for Docker builds
+        run: |
+          echo "VIRUSTOTAL_API_KEY=${{ secrets.VIRUSTOTAL_API_KEY }}" > .env
+          echo "PORT=${{ secrets.PORT }}" >> .env
+
       - name: Build Analyzer Docker image
         run: docker build -t linkcheck-analyzer -f analyzer/Dockerfile .
 
@@ -54,6 +59,7 @@ jobs:
   dast-scan:
     runs-on: ubuntu-latest
     needs: security-pipeline
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -61,11 +67,16 @@ jobs:
       - name: Install Docker Compose
         run: sudo apt-get install -y docker-compose
 
+      - name: Inject .env file for Docker Compose
+        run: |
+          echo "VIRUSTOTAL_API_KEY=${{ secrets.VIRUSTOTAL_API_KEY }}" > .env
+          echo "PORT=${{ secrets.PORT }}" >> .env
+
       - name: Start Docker services
         run: docker-compose up -d
 
       - name: Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.9.0
         with:
-          target: 'http://localhost:3001'
+          target: 'http://localhost:${{ secrets.PORT }}'
         continue-on-error: true
