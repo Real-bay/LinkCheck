@@ -1,9 +1,20 @@
 services:
-  url-checker:
+  frontend:
     build:
-      context: .
+      context: ./frontend
       dockerfile: Dockerfile
     env_file: .env
+    ports:
+      - '3001:3001'
     volumes:
-      - ./:/usr/src
-    command: ['node', '/app/build/index.js', 'https://youtube.com']
+      - shared-data:/results
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - app-network
+
+volumes:
+  shared-data:
+
+networks:
+  app-network:
+    driver: bridge

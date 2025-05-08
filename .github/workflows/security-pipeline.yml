@@ -30,13 +30,23 @@ jobs:
         run: |
           npm audit --audit-level=moderate || true
 
-      - name: Build Docker image
-        run: docker build -t linkcheck-image -f Dockerfile .
+      - name: Build Analyzer Docker image
+        run: docker build -t linkcheck-analyzer -f analyzer/Dockerfile .
 
-      - name: Run Trivy vulnerability scanner on Docker image
+      - name: Build Frontend Docker image
+        run: docker build -t linkcheck-frontend -f frontend/Dockerfile .
+
+      - name: Run Trivy vulnerability scanner on Analyzer Docker image
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: linkcheck-image
+          image-ref: linkcheck-analyzer
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Run Trivy vulnerability scanner on Frontend Docker image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: linkcheck-frontend
           format: 'table'
           severity: 'CRITICAL,HIGH'
 

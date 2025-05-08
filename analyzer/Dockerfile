@@ -8,18 +8,15 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
-
-# Install TypeScript globally
-RUN npm install -g typescript
+RUN npm ci
 
 # Copy the rest of the application files
 COPY . .
 
-# Compile TypeScript to JavaScript
-RUN tsc
+# Compile using tsc via npm script
+RUN npm run build:analyzer
 
-# Command to run the application
-CMD ["node", "/app/build/index.js"]
+# Entry point to run the application
+ENTRYPOINT [ "node", "/app/build/htmlAnalysis.js" ]
 
 

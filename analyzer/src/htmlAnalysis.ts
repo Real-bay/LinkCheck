@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { JSDOM } from 'jsdom';
 import { ESLint } from 'eslint';
+import fs from 'fs/promises';
+import path from 'path';
 
 type HTMLAnalysisResult = {
   url: string;
@@ -9,13 +11,60 @@ type HTMLAnalysisResult = {
   error?: string;
 };
 
+const INPUT_DIR = '/shared/job'; // Adjust this at runtime using env vars if needed
+const URL_FILE = path.join(INPUT_DIR, 'url.txt');
+const RESULT_FILE = path.join(INPUT_DIR, 'result.json');
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function waitForUrlFile(timeoutMs = 30000): Promise<string> {
+  const start = Date.now();
+  while (true) {
+    try {
+      const url = await fs.readFile(URL_FILE, 'utf-8');
+      if (url) return url.trim();
+    } catch (error) {
+      console.error(
+        'Timed out waiting for VirusTotal check after ',
+        timeoutMs / 1000,
+        ' seconds:',
+        error,
+      );
+    }
+    if (Date.now() - start > timeoutMs) {
+      throw new Error('Timed out waiting for URL input');
+    }
+    await sleep(500);
+  }
+}
+
+async function writeResultFile(result: object) {
+  await fs.writeFile(RESULT_FILE, JSON.stringify(result, null, 2), 'utf-8');
+  console.log('Analysis complete, result written.');
+}
+
+export async function idle() {
+  try {
+    console.log('Waiting for URL...');
+    const url = await waitForUrlFile();
+    console.log(`Received URL: ${url}`);
+
+    const result = await analyzePage(url);
+
+    await writeResultFile(result);
+  } catch (error) {
+    console.error('Error during analysis:', error);
+    process.exit(1);
+  }
+}
+
 export async function analyzePage(url: string): Promise<HTMLAnalysisResult> {
   try {
     const { data: html } = await axios.get(url);
     const dom = new JSDOM(html);
 
     const htmlFindings = analyzeHTMLForSecurity(dom);
-    const jsFindings = await analyzeInlineJS(dom); // TODO: Fix this to work with the new ESLint version
+    const jsFindings = await analyzeInlineJS(dom);
 
     return {
       url,
@@ -115,3 +164,5 @@ async function analyzeInlineJS(dom: JSDOM): Promise<object[]> {
 
   return findings;
 }
+
+idle();

@@ -43,4 +43,7 @@ export default [
       'security/detect-object-injection': 'warn',
     },
   },
+  {
+    ignores: ['build/', 'dist/', 'node_modules/'],
+  },
 ];
