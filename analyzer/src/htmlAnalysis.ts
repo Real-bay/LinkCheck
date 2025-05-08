@@ -2,6 +2,7 @@ import axios from 'axios';
 import { JSDOM } from 'jsdom';
 import { ESLint } from 'eslint';
 import fs from 'fs/promises';
+// import { existsSync, writeFileSync } from 'fs';
 import path from 'path';
 
 type HTMLAnalysisResult = {
@@ -11,30 +12,41 @@ type HTMLAnalysisResult = {
   error?: string;
 };
 
-const INPUT_DIR = '/shared/job'; // Adjust this at runtime using env vars if needed
-const URL_FILE = path.join(INPUT_DIR, 'url.txt');
-const RESULT_FILE = path.join(INPUT_DIR, 'result.json');
+const JOB_ID = process.env.JOB_ID || ''; // Use JOB_ID from env vars
+
+if (!JOB_ID) {
+  throw new Error('JOB_ID is not set in environment variables');
+}
+
+const FILE_DIR = path.join('/app/shared', JOB_ID); // e.g. /shared/job-xxxx
+const INPUT_FILE = path.join(FILE_DIR, 'url.txt'); // e.g. /shared/job-xxxx/url.txt
+const RESULT_FILE = path.join(FILE_DIR, 'result.json'); // e.g. /shared/job-xxxx/result.json
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function waitForUrlFile(timeoutMs = 30000): Promise<string> {
+async function waitForUrlFile(timeoutMs = 300000): Promise<string> {
   const start = Date.now();
   while (true) {
     try {
-      const url = await fs.readFile(URL_FILE, 'utf-8');
+      const url = await fs.readFile(INPUT_FILE, 'utf-8');
       if (url) return url.trim();
     } catch (error) {
-      console.error(
-        'Timed out waiting for VirusTotal check after ',
-        timeoutMs / 1000,
-        ' seconds:',
-        error,
-      );
+      if (Date.now() - start > timeoutMs) {
+        console.error(
+          `Timed out waiting for VirusTotal check after ${timeoutMs / 1000} seconds:`,
+          error,
+        );
+      } else {
+        console.error('Unclassified error while waiting for URL file:', error);
+      }
     }
     if (Date.now() - start > timeoutMs) {
-      throw new Error('Timed out waiting for URL input');
+      throw new Error(
+        `Timed out waiting for VirusTotal check after ${timeoutMs / 1000} seconds.`,
+      );
     }
-    await sleep(500);
+    await sleep(5000);
+    console.log('Waiting for URL file...');
   }
 }
 

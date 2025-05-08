@@ -1,53 +1,24 @@
 import './App.css';
 import React, { useState } from 'react';
-import scanUrl from './api/linkverify';
+import axios from 'axios';
 
 function App() {
   const [link, setLink] = useState('');
-  const [loadingBlacklistResults, setLoadingBlacklistResults] = useState(false);
-  const [loadingPageAnalysisResults, setLoadingPageAnalysisResults] =
-    useState(false);
-  const [blacklistResults, setBlacklistResults] = useState(null);
-  const [pageAnalysisResults, setPageAnalysisResults] = useState(null);
+  const [loadingResults, setLoadingResults] = useState(false);
+  const [results, setResults] = useState(null);
 
   const handleSubmit = async () => {
-    setBlacklistResults(null);
-    setPageAnalysisResults(null);
-    setLoadingBlacklistResults(true);
-    setLoadingPageAnalysisResults(true);
+    setResults(null);
+    setLoadingResults(true);
 
     try {
-      const vt = await scanUrl(link);
-      setBlacklistResults(
-        `VirusTotal scan results: 
-        ${vt.stats.malicious} malicious, 
-        ${vt.stats.suspicious} suspicious, 
-        ${vt.stats.harmless} harmless, 
-        ${vt.stats.undetected} undetected`,
-      );
-      setLoadingBlacklistResults(false);
-
-      if (vt.harmful) {
-        setPageAnalysisResults('Static analysis skipped due to blacklist hit.');
-        setLoadingPageAnalysisResults(false);
-        return;
-      }
-
-      // Call backend for static analysis
-      const res = await fetch(`/api/dockerode`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: link }),
-      });
-
-      const json = await res.json();
-      setPageAnalysisResults(JSON.stringify(json, null, 2));
+      const res = await axios.post('/api/analyze', { url: link });
+      setResults(res.data);
     } catch (err) {
-      setBlacklistResults('VirusTotal check failed.');
-      console.error(err);
+      console.error('Error fetching analysis results:', err);
+      setResults({ error: 'Failed to fetch analysis results.' });
     } finally {
-      setLoadingBlacklistResults(false);
-      setLoadingPageAnalysisResults(false);
+      setLoadingResults(false);
     }
   };
 
@@ -78,19 +49,25 @@ function App() {
         </div>
         <div>
           <div style={{ fontSize: '30px' }}>Results</div>
-          <div style={{ fontSize: '24px' }}>
-            Blacklist results
-            {loadingBlacklistResults && <>Loading...</>}
-            {blacklistResults && !loadingBlacklistResults && (
-              <div>{blacklistResults}</div>
-            )}
-          </div>
-          <div style={{ fontSize: '24px' }}>
-            Page analysis results
-            {pageAnalysisResults && !loadingPageAnalysisResults && (
-              <div>{pageAnalysisResults}</div>
-            )}
-          </div>
+          {loadingResults && <div>Loading...</div>}
+          {results && (
+            <div style={{ fontSize: '24px' }}>
+              {results.error && <div>Error: {results.error}</div>}
+              {results.vtResult && (
+                <div>
+                  <strong>VirusTotal Results:</strong>
+                  <pre>{JSON.stringify(results.vtResult, null, 2)}</pre>
+                </div>
+              )}
+              {results.pageAnalysis && (
+                <div>
+                  <strong>Page Analysis:</strong>
+                  <pre>{JSON.stringify(results.pageAnalysis, null, 2)}</pre>
+                </div>
+              )}
+              {results.skipped && <div>Static analysis skipped.</div>}
+            </div>
+          )}
         </div>
       </div>
     </div>

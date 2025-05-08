@@ -23,18 +23,24 @@ jobs:
         run: npm ci
 
       - name: Run ESLint with security plugins
-        run: |
-          npx eslint . --ext .ts,.js
+        run: npx eslint . --ext .ts,.js
 
       - name: Run npm audit for known vulnerabilities
+        run: npm audit --audit-level=moderate || true
+
+      - name: Build the project
+        run: npm run build
+
+      - name: Inject .env file for Docker builds
         run: |
-          npm audit --audit-level=moderate || true
+          echo "VIRUSTOTAL_API_KEY=${{ secrets.VIRUSTOTAL_API_KEY }}" > .env
+          echo "PORT=${{ secrets.PORT }}" >> .env
 
       - name: Build Analyzer Docker image
         run: docker build -t linkcheck-analyzer -f analyzer/Dockerfile .
 
-      - name: Build Frontend Docker image
-        run: docker build -t linkcheck-frontend -f frontend/Dockerfile .
+      - name: Build Backend Docker image
+        run: docker build -t linkcheck-backend -f Dockerfile .
 
       - name: Run Trivy vulnerability scanner on Analyzer Docker image
         uses: aquasecurity/trivy-action@master
@@ -43,27 +49,34 @@ jobs:
           format: 'table'
           severity: 'CRITICAL,HIGH'
 
-      - name: Run Trivy vulnerability scanner on Frontend Docker image
+      - name: Run Trivy vulnerability scanner on Backend Docker image
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: linkcheck-frontend
+          image-ref: linkcheck-backend
           format: 'table'
           severity: 'CRITICAL,HIGH'
 
-  # dast-scan:
-  #   runs-on: ubuntu-latest
-  #   needs: security-pipeline
+  dast-scan:
+    runs-on: ubuntu-latest
+    needs: security-pipeline
 
-  #   steps:
-  #   - name: Checkout code
-  #     uses: actions/checkout@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-  #   - name: Start Docker services
-  #     run: docker-compose up -d
+      - name: Install Docker Compose
+        run: sudo apt-get install -y docker-compose
 
-  #   # Optional placeholder for future frontend DAST scan
-  #   - name: Run OWASP ZAP Baseline Scan (optional)
-  #     uses: zaproxy/action-baseline@v0.9.0
-  #     with:
-  #       target: 'http://localhost:3000'  # TODO: Update with proper URL
-  #     continue-on-error: true
+      - name: Inject .env file for Docker Compose
+        run: |
+          echo "VIRUSTOTAL_API_KEY=${{ secrets.VIRUSTOTAL_API_KEY }}" > .env
+          echo "PORT=${{ secrets.PORT }}" >> .env
+
+      - name: Start Docker services
+        run: docker-compose up -d
+
+      - name: Run OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.9.0
+        with:
+          target: 'http://localhost:${{ secrets.PORT }}'
+        continue-on-error: true

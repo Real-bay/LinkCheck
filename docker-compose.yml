@@ -1,16 +1,31 @@
 services:
-  frontend:
+  application:
     build:
-      context: ./frontend
+      context: .
       dockerfile: Dockerfile
     env_file: .env
     ports:
       - '3001:3001'
     volumes:
-      - shared-data:/results
+      - shared-data:/app/shared
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - app-network
+
+  analyzer:
+    profiles: ["manual"]
+    build:
+      context: .
+      dockerfile: analyzer/Dockerfile
+    image: analyzer:latest
+    volumes:
+      - shared-data:/app/shared
+    depends_on:
+      - application
+    networks:
+      - app-network
+    entrypoint: ["node", "/app/build/analyzer/src/htmlAnalysis.js"]
+    restart: "no"
 
 volumes:
   shared-data:

@@ -5,7 +5,7 @@ FROM node:23-alpine
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY ../package.json ../package-lock.json ./
 
 # Install dependencies
 RUN npm ci
@@ -16,7 +16,5 @@ COPY . .
 # Compile using tsc via npm script
 RUN npm run build:analyzer
 
-# Entry point to run the application
-ENTRYPOINT [ "node", "/app/build/htmlAnalysis.js" ]
-
-
+# Entrypoint: run the analyzer
+CMD ["node", "build/analyzer/src/htmlAnalysis.js"]
