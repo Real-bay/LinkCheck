@@ -5,7 +5,7 @@ import axios from 'axios';
 function App() {
   const [link, setLink] = useState('');
   const [loadingResults, setLoadingResults] = useState(false);
-  const [results, setResults] = useState(null); 
+  const [results, setResults] = useState(null);
 
   const handleSubmit = async () => {
     setResults(null);
@@ -57,16 +57,28 @@ function App() {
                 <div style={{ marginBottom: '20px' }}>
                   <h2>VirusTotal Results:</h2>
                   {results.vtResult.harmful && (
-                    <div style={{ fontSize: '30px' }}>This website might be malicious!</div>
+                    <div style={{ fontSize: '30px' }}>
+                      This website might be malicious!
+                    </div>
                   )}
                   {!results.vtResult.harmful && (
-                    <div style={{ fontSize: '30px' }}>This website is most likely safe!</div>
+                    <div style={{ fontSize: '30px' }}>
+                      This website is most likely safe!
+                    </div>
                   )}
                   <div>
-                    <div>Harmless results: {results.vtResult.stats.harmless}</div>
-                    <div>Malicious results: {results.vtResult.stats.malicious}</div>
-                    <div>Suspicious results: {results.vtResult.stats.suspicious}</div>
-                    <div>Undetected results: {results.vtResult.stats.undetected}</div>
+                    <div>
+                      Harmless results: {results.vtResult.stats.harmless}
+                    </div>
+                    <div>
+                      Malicious results: {results.vtResult.stats.malicious}
+                    </div>
+                    <div>
+                      Suspicious results: {results.vtResult.stats.suspicious}
+                    </div>
+                    <div>
+                      Undetected results: {results.vtResult.stats.undetected}
+                    </div>
                   </div>
                 </div>
               )}
@@ -75,17 +87,17 @@ function App() {
                   <h2>Page Analysis Results:</h2>
                   <h4>HTML findings</h4>
                   <ul>
-                  {Object.entries(results.pageAnalysis.htmlFindings.tags).map(([tag, count]) => (
-                    <li key={tag}>
-                      Number of &lt;{tag}&gt;-tags found: {count}
-                    </li>
-                  ))}
+                    {Object.entries(results.pageAnalysis.htmlFindings.tags).map(
+                      ([tag, count]) => (
+                        <li key={tag}>
+                          Number of &lt;{tag}&gt;-tags found: {count}
+                        </li>
+                      ),
+                    )}
                   </ul>
                   <ul>
                     {results.pageAnalysis.htmlFindings.findings.map((f, i) => (
-                      <li key={i}>
-                        {f}
-                      </li>
+                      <li key={i}>{f}</li>
                     ))}
                   </ul>
                   <h4>JavaScript findings</h4>
@@ -96,7 +108,8 @@ function App() {
                       <ul>
                         {finding.messages.map((msg, idx) => (
                           <li key={idx}>
-                            Line {msg.line}, Column {msg.column}: <strong>{msg.message}</strong> ({msg.ruleId})
+                            Line {msg.line}, Column {msg.column}:{' '}
+                            <strong>{msg.message}</strong> ({msg.ruleId})
                           </li>
                         ))}
                       </ul>
