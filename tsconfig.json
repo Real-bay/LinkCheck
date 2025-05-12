@@ -9,7 +9,12 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": [
+      "node",
+      "vite/client",
+      "vitest"
+    ],
   },
   "include": [
     "analyzer/src/**/*",
