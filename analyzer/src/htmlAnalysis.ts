@@ -3,18 +3,7 @@ import { JSDOM } from 'jsdom';
 import { ESLint } from 'eslint';
 import fs from 'fs/promises';
 import path from 'path';
-
-// Types for analysis results
-type HTMLFindings = {
-  tags: Record<string, unknown>; // Counts of specific HTML tags
-  findings: string[]; // Security-related findings in the HTML
-};
-type HTMLAnalysisResult = {
-  url: string;
-  htmlFindings: HTMLFindings;
-  jsFindings?: object[];
-  error?: string;
-};
+import type { HTMLFindings, JSFindings, HTMLAnalysisResult } from '../../types';
 
 // Environment variable for the job ID, used to identify the shared directory
 const JOB_ID = process.env.JOB_ID || '';
@@ -163,7 +152,7 @@ function analyzeHTMLForSecurity(dom: JSDOM): HTMLFindings {
 }
 
 // Analyzes inline JavaScript using ESLint
-async function analyzeInlineJS(dom: JSDOM): Promise<object[]> {
+async function analyzeInlineJS(dom: JSDOM): Promise<JSFindings[]> {
   const scripts = dom.window.document.querySelectorAll('script');
   const jsCodeSnippets: string[] = [];
 
@@ -181,7 +170,7 @@ async function analyzeInlineJS(dom: JSDOM): Promise<object[]> {
     overrideConfigFile: './eslint.config.mjs', // Use project ESLint configuration
   });
 
-  const findings: object[] = [];
+  const findings: JSFindings[] = [];
 
   // Lint each inline JavaScript snippet
   for (const [i, code] of jsCodeSnippets.entries()) {

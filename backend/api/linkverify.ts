@@ -2,6 +2,13 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import type {
+  VirusTotalStats,
+  VirusTotalResult,
+  VirusTotalResponse,
+  AnalysisResponse,
+  AnalysisResult,
+} from '../../types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,48 +22,6 @@ const API_KEY = process.env.VIRUSTOTAL_API_KEY || '';
 if (!API_KEY) {
   throw new Error('VIRUSTOTAL_API_KEY is not set in environment variables');
 }
-
-type VirusTotalResponse = {
-  data: {
-    id: string;
-    type: string;
-  };
-};
-
-type VirusTotalStats = {
-  harmless: number;
-  malicious: number;
-  suspicious: number;
-  undetected: number;
-};
-
-type VirusTotalResult = {
-  author: {
-    method: string;
-    engine_name: string;
-    category: string;
-    result: string;
-  };
-};
-
-interface AnalysisResponse {
-  data: {
-    id: string;
-    attributes: {
-      date: number;
-      status: string;
-      results: VirusTotalResult[];
-      stats: VirusTotalStats;
-    };
-  };
-}
-
-type AnalysisResult = {
-  harmful: boolean;
-  stats: VirusTotalStats;
-  results: VirusTotalResult[];
-  error?: string;
-};
 
 export default async function scanUrl(
   urlToScan: string,

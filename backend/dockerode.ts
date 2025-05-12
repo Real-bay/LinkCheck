@@ -5,6 +5,7 @@ import { writeFile, readFile } from 'fs/promises';
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
+import type { AnalysisResult, HTMLAnalysisResult } from '../types';
 
 const router: Router = express.Router();
 const docker = new Docker();
@@ -30,10 +31,10 @@ router.post('/analyze', async (req: Request, res: Response) => {
     // 1. Create job folder and files on the host
     fs.mkdirSync(containerJobPath, { recursive: true });
 
-    await writeFile(path.join(containerJobPath, 'url.txt'), '', {
+    await writeFile(urlPath, '', {
       mode: 0o666,
     });
-    await writeFile(path.join(containerJobPath, 'result.json'), '{}', {
+    await writeFile(resultPath, '{}', {
       mode: 0o666,
     });
     console.log(
@@ -42,7 +43,7 @@ router.post('/analyze', async (req: Request, res: Response) => {
     );
 
     // 2. Run VirusTotal check
-    const vt = await scanUrl(url);
+    const vt: AnalysisResult = await scanUrl(url);
 
     if (vt.harmful) {
       console.log('URL is harmful, skipping analysis');
@@ -109,7 +110,7 @@ router.post('/analyze', async (req: Request, res: Response) => {
             continue;
           }
           console.log('Result file found, parsing...');
-          const parsedResult = JSON.parse(resultContent);
+          const parsedResult: HTMLAnalysisResult = JSON.parse(resultContent);
           res.status(200).json({
             vtResult: vt,
             pageAnalysis: parsedResult,
