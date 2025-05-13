@@ -9,4 +9,16 @@ export default defineConfig({
   build: {
     outDir: 'dist/',
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    coverage: {
+      exclude: [
+        'build/**',
+        'dist/**', 
+        '**/*.d.ts',
+        'vite.config.mts',
+      ],
+    },
+  },  
 });

@@ -29,7 +29,7 @@ vi.mock('dockerode', () => {
 vi.mock('fs', () => {
   const actual = vi.importActual('fs');
   return {
-    ...actual,
+    ...(typeof actual === 'object' && actual !== null ? actual : {}),
     mkdirSync: vi.fn(),
     existsSync: vi.fn().mockReturnValue(true),
     default: {
@@ -39,6 +39,15 @@ vi.mock('fs', () => {
   };
 });
 vi.mock('fs/promises', () => ({
+  default: {
+    writeFile: vi.fn().mockResolvedValue(undefined),
+    readFile: vi.fn().mockResolvedValue(
+      JSON.stringify({
+        htmlFindings: { tags: { script: 1 }, findings: [] },
+        url: 'http://test',
+      }),
+    ),
+  },
   writeFile: vi.fn().mockResolvedValue(undefined),
   readFile: vi.fn().mockResolvedValue(
     JSON.stringify({
