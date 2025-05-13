@@ -1,18 +1,19 @@
 import './App.css';
 import React, { useState } from 'react';
 import axios from 'axios';
+import type { ApiResponse } from '../../types';
 
 function App() {
   const [link, setLink] = useState('');
   const [loadingResults, setLoadingResults] = useState(false);
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState<ApiResponse | null>(null);
 
   const handleSubmit = async () => {
     setResults(null);
     setLoadingResults(true);
 
     try {
-      const res = await axios.post('/api/analyze', { url: link });
+      const res = await axios.post<ApiResponse>('/api/analyze', { url: link });
       setResults(res.data);
     } catch (err) {
       console.error('Error fetching analysis results:', err);
@@ -100,21 +101,22 @@ function App() {
                       <li key={i}>{f}</li>
                     ))}
                   </ul>
-                  <h4>JavaScript findings</h4>
-                  <div>{results.pageAnalysis.jsFindings.file}</div>
-                  {results.pageAnalysis.jsFindings.map((finding, index) => (
-                    <div key={index} style={{ marginBottom: '5px' }}>
-                      <h5>{finding.file.split('/').at(-1)}</h5>
-                      <ul>
-                        {finding.messages.map((msg, idx) => (
-                          <li key={idx}>
-                            Line {msg.line}, Column {msg.column}:{' '}
-                            <strong>{msg.message}</strong> ({msg.ruleId})
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+                  <div>
+                    <h4>JavaScript findings</h4>
+                    {results.pageAnalysis?.jsFindings?.map((finding, index) => (
+                      <div key={index} style={{ marginBottom: '5px' }}>
+                        <h5>{finding.file.split('/').at(-1)}</h5>
+                        <ul>
+                          {finding.messages.map((msg, idx) => (
+                            <li key={idx}>
+                              Line {msg.line}, Column {msg.column}:{' '}
+                              <strong>{msg.message}</strong> ({msg.ruleId})
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
               {results.skipped && <div>Static analysis skipped.</div>}
