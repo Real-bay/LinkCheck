@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: '20'
       - run: npm ci
-      - run: npx vitest run --coverage
+      - run: npm test
 
   security-pipeline:
     runs-on: ubuntu-latest
