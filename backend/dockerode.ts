@@ -48,7 +48,6 @@ router.post('/analyze', async (req: Request, res: Response) => {
       console.log('URL is harmful, skipping analysis');
       res.status(200).json({
         vtResult: vt,
-        pageAnalysis: null,
         skipped: true,
       });
       return;

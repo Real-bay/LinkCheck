@@ -207,4 +207,7 @@ async function analyzeInlineJS(dom: JSDOM): Promise<object[]> {
   return findings;
 }
 
-idle();
+// Only run idle() if this file is executed directly (not imported)
+if (import.meta.url === `file://${process.argv[1]}`) {
+  idle();
+}
