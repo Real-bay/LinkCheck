@@ -23,6 +23,7 @@ if (!API_KEY) {
   throw new Error('VIRUSTOTAL_API_KEY is not set in environment variables');
 }
 
+// Main function of this file
 export default async function scanUrl(
   urlToScan: string,
 ): Promise<AnalysisResult> {
@@ -30,6 +31,7 @@ export default async function scanUrl(
   requestBody.append('url', urlToScan);
 
   try {
+    // Submit URL for scanning
     const response = await axios.post<VirusTotalResponse>(
       VIRUSTOTAL_API_URL,
       requestBody,
@@ -46,6 +48,7 @@ export default async function scanUrl(
 
     return await ResolveAnalysis(analysisId);
   } catch (error) {
+    // If an error occurs, return error result
     console.error('Error scanning URL:', error);
     return {
       harmful: true,
@@ -61,10 +64,12 @@ export default async function scanUrl(
   }
 }
 
+// Gets the scan result
 async function getAnalysis(
   analysisId: string,
 ): Promise<AnalysisResponse | null> {
   try {
+    // Get scan result
     const response = await axios.get(
       `${VIRUSTOTAL_ANALYSIS_URL}/${analysisId}`,
       {
@@ -82,8 +87,12 @@ async function getAnalysis(
   }
 }
 
+// Wait for scan results and extract relevant parts
 async function ResolveAnalysis(analysisId: string): Promise<AnalysisResult> {
   let analysis: AnalysisResponse | null;
+  // The scan might take a while, 
+  // this loop asks the endpoint every 5 seconds if the scan is ready
+  // and extracts the relevant results
   while (true) {
     analysis = await getAnalysis(analysisId);
     if (analysis && analysis.data.attributes.status === 'completed') {
